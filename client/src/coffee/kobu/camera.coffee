@@ -2,9 +2,6 @@ class Kobu.Camera
 	constructor: (game) ->
 		@game = game
 		@renderer = game.renderer
-		
-		#@spriteFromTexture()
-		@map = new Kobu.Map('map.json')
 	
 	spriteFromTexture: ->
 		tileset = new PIXI.Texture.fromImage('grass.png')

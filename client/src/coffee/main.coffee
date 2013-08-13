@@ -10,7 +10,7 @@ move = (dir) ->
 		when 'left' then position.x -= 1
 		when 'right' then position.x += 1
 	
-	window.socket.emit('set', {position: position})
+	#window.socket.emit('set', {position: position})
 
 $(document).ready ->
 	Kobu.game = new Kobu.Game

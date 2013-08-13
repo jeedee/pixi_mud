@@ -37,7 +37,7 @@ module.exports = (grunt) ->
 		copy: {
 		  main: {
 		    files: [
-		      {src: ['*'], dest: 'dist/', cwd: 'src/root/', filter: 'isFile', expand: true, flatten: false}
+		      {src: ['**/*'], dest: 'dist/', cwd: 'src/root/', expand: true, flatten: false}
 		    ]
 		  }
 		},
