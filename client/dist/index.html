@@ -14,8 +14,29 @@
 	</head>
 	
 	<body>
-		<script src="http://10.0.1.35:8000/socket.io/socket.io.js"></script>
+		<script src="http://72.11.167.69:8000/socket.io/socket.io.js"></script>
 		<script type="text/javascript" src="plugins.js"></script>
 		<script type="text/javascript" src="app.js"></script>
+		<script>
+			var stats = new Stats();
+			stats.setMode(0); // 0: fps, 1: ms
+
+			// Align top-left
+			stats.domElement.style.position = 'absolute';
+			stats.domElement.style.left = '0px';
+			stats.domElement.style.top = '0px';
+
+			document.body.appendChild( stats.domElement );
+
+			setInterval( function () {
+
+			    stats.begin();
+
+			    // your code goes here
+
+			    stats.end();
+
+			}, 1000 / 60 );
+		</script>
 	</body>
 </html>

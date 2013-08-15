@@ -4,8 +4,14 @@ Ness = require("../ness/lib/ness")
 class Player extends Ness.NModel
 	zone = null
 	
+	defaults: {
+		position: {x: 0, y: 0}
+		orientation: 3,
+		type: 0,
+		spriteId: '01'
+	}
+	
 	initialize: ->
-		@set('position', {x: 12, y: 15})
 		super
 	
 	join: (zone) ->
@@ -20,7 +26,10 @@ class Player extends Ness.NModel
 		global.zones[@zone].remove @
 	
 	networkedAttributes:{
+		orientation: {sync: true, read: Ness.EVERYONE}
 		position: {sync: true, read: Ness.EVERYONE}
+		type: {sync: true, read: Ness.EVERYONE}
+		spriteId: {sync: true, read: Ness.EVERYONE}
 	}
 
 class Zone extends Ness.NCollection
@@ -37,6 +46,8 @@ io.sockets.on "connection", (socket) ->
 	console.log 'Client connected'
 	
 	socket.on 'set', (data) ->
+		console.log "Client wants to set"
+		console.log data
 		clients[socket.id].setNetworked(socket, data)
 
 	socket.on "disconnect", ->

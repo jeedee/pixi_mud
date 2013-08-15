@@ -1,13 +1,17 @@
 class Kobu.Camera
 	constructor: (game) ->
-		@game = game
-		@renderer = game.renderer
+		@position = new PIXI.Point
+		@target = null
+	pan: (x, y) ->
+		@position.x += x
+		@position.y -= y
 	
-	spriteFromTexture: ->
-		tileset = new PIXI.Texture.fromImage('grass.png')
+	update: ->
+		# Update code
+		if (@target?)
+			@position.x = Math.round(-@target.position.x + (900 / 2))
+			@position.y = Math.round(-@target.position.y + (700 / 2))
 		
-		texture = new PIXI.Texture(tileset, new PIXI.Rectangle(0,0,32,32))
-		@sprite = new PIXI.Sprite(texture)
-		@sprite.x = 150
-		@sprite.y = 150
-		@game.stage.addChild(@sprite)
+		Kobu.game.world.position.x = @position.x
+		Kobu.game.world.position.y = @position.y
+			

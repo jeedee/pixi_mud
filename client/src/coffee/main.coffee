@@ -1,5 +1,13 @@
 window.Kobu = {}
 
+# Implements mixins :)
+window.mixOf = (base, mixins...) ->
+  class Mixed extends base
+  for mixin in mixins by -1
+    for name, method of mixin::
+      Mixed::[name] = method
+  Mixed
+  
 move = (dir) ->
 	target = $("div#" + window.selfId)
 	position = {x: target.position().left, y: target.position().top}
@@ -13,7 +21,7 @@ move = (dir) ->
 	#window.socket.emit('set', {position: position})
 
 $(document).ready ->
-	Kobu.game = new Kobu.Game
+	Kobu.game = new Kobu.Main
 	
 	#window.socket = io.connect("http://10.0.1.35:8000");
 	#

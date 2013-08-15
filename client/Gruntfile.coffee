@@ -29,7 +29,7 @@ module.exports = (grunt) ->
 		coffee: {
 			dev:  {
 				files: {
-					'dist/app.js':['src/coffee/main.coffee', 'src/coffee/kobu/**/*.coffee', 'src/coffee/**/*.coffee']
+					'dist/app.js':['src/coffee/main.coffee', 'src/coffee/kobu/*.coffee', 'src/coffee/**/*.coffee']
 				}
 			}
 		},

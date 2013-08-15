@@ -3,7 +3,7 @@ class Kobu.Map
 		@tiles = new Array
 		
 		@container = new PIXI.DisplayObjectContainer
-		Kobu.game.stage.addChild(@container)
+		Kobu.game.addChild(@container)
 		
 		$.getJSON("#{filename}", @parseMap)
 	
@@ -15,8 +15,8 @@ class Kobu.Map
 		# Cache the tiles
 		for tileset in map.tilesets
 			index = tileset.firstgid
-			totalTiles = (tileset.imageheight/tileset.tileheight)*(tileset.imagewidth/tileset.tilewidth)
-			horizontalTiles = tileset.imagewidth/tileset.tilewidth
+			totalTiles = (tileset.imageheight / tileset.tileheight)*(tileset.imagewidth / tileset.tilewidth)
+			horizontalTiles = tileset.imagewidth / tileset.tilewidth
 			for i in [0..totalTiles-1]
 				@tiles[index] = @getTile(i, tileset.name, horizontalTiles)
 				index +=1
