@@ -1,6 +1,5 @@
 (function() {
-  var move,
-    __slice = [].slice,
+  var __slice = [].slice,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -29,25 +28,6 @@
       }
     }
     return Mixed;
-  };
-
-  move = function(dir) {
-    var position, target;
-    target = $("div#" + window.selfId);
-    position = {
-      x: target.position().left,
-      y: target.position().top
-    };
-    switch (dir) {
-      case 'up':
-        return position.y -= 1;
-      case 'down':
-        return position.y += 1;
-      case 'left':
-        return position.x -= 1;
-      case 'right':
-        return position.x += 1;
-    }
   };
 
   $(document).ready(function() {
@@ -103,10 +83,14 @@
       if (this.get(character.id) != null) {
         return this.get(character.id).set(character);
       } else {
-        this.add(new Kobu.Character(character));
+        this.add(new Kobu.Character({
+          id: character.id
+        }));
+        this.get(character.id).set(character);
         Kobu.game.addChild(this.get(character.id).sprite);
         if (Kobu.game.player() === this.get(character.id)) {
-          return Kobu.game.camera.target = this.get(character.id).sprite;
+          Kobu.game.camera.target = this.get(character.id).sprite;
+          return Kobu.game.player().setOwner(true);
         }
       }
     };
@@ -139,37 +123,40 @@
     }
 
     Main.prototype.handleKeyboard = function(e) {
-      var anim, newPosition;
-      newPosition = _.clone(this.player().get('position'));
+      var orientation;
+      if (Kobu.game.player() == null) {
+        return;
+      }
+      orientation = '';
       switch (e.keyCode) {
         case 37:
-          newPosition.x += -32;
-          anim = 'left';
+          orientation = Kobu.ORIENTATION.LEFT;
           break;
         case 38:
-          newPosition.y += -32;
-          anim = 'up';
+          orientation = Kobu.ORIENTATION.UP;
           break;
         case 39:
-          newPosition.x += 32;
-          anim = 'right';
+          orientation = Kobu.ORIENTATION.RIGHT;
           break;
         case 40:
-          newPosition.y += 32;
-          anim = 'down';
+          orientation = Kobu.ORIENTATION.DOWN;
       }
-      console.log(newPosition);
-      this.player().set({
-        position: newPosition
-      });
-      return Kobu.game.network.setRequest(0, {
-        position: newPosition
-      });
+      if (orientation !== '') {
+        this.player().set({
+          orientation: orientation
+        }, {
+          silent: true
+        });
+        this.player().trigger('change:orientation', this.player(), orientation, {
+          localTrigger: true
+        });
+        return false;
+      }
     };
 
     Main.prototype.start = function() {
       this.camera = new Kobu.Camera(this);
-      this.map = new Kobu.Map('largemap.json');
+      this.map = new Kobu.Map('smallmap.json');
       this.network = new Kobu.Network;
       return window.requestAnimFrame(_.bind(this.render, this));
     };
@@ -292,8 +279,16 @@
 }).call(this);
 
 (function() {
-  var __hasProp = {}.hasOwnProperty,
+  var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  Kobu.ORIENTATION = {
+    UP: 'up',
+    DOWN: 'down',
+    LEFT: 'left',
+    RIGHT: 'right'
+  };
 
   Kobu.Sprite = (function(_super) {
     __extends(Sprite, _super);
@@ -308,12 +303,29 @@
 
     Sprite.prototype.playOnce = true;
 
+    Sprite.prototype.orientation = Kobu.ORIENTATION.DOWN;
+
     function Sprite(textureId) {
+      this.orientationChanged = __bind(this.orientationChanged, this);
       var texture;
       this.id = textureId;
       texture = PIXI.TextureCache["" + textureId + "_down1.png"];
+      _.extend(this, Backbone.Events);
       Sprite.__super__.constructor.call(this, texture);
     }
+
+    Sprite.prototype.setupEvents = function() {
+      if (typeof parent === "undefined" || parent === null) {
+        return;
+      }
+      this.parent.on('change:orientation', _.bind(this.orientationChanged, this));
+      return this.parent.on('playAnimation', _.bind(this.playAnimation, this));
+    };
+
+    Sprite.prototype.orientationChanged = function(orientation) {
+      this.orientation = orientation;
+      return this.setTexture(PIXI.TextureCache["" + this.id + "_" + this.orientation + "1.png"]);
+    };
 
     Sprite.prototype.playAnimation = function(name, once) {
       if (once == null) {
@@ -324,10 +336,6 @@
       return this.playOnce = once;
     };
 
-    Sprite.prototype.setOrientation = function(id) {
-      return this.setTexture(PIXI.TextureCache["" + this.id + "_" + Kobu.Sprite.orientation[id] + "1.png"]);
-    };
-
     Sprite.prototype.stopAnimation = function(frame) {
       if (frame == null) {
         frame = null;
@@ -336,7 +344,7 @@
       if (frame != null) {
         return this.setTexture(PIXI.TextureCache["" + this.id + "_" + frame + "1.png"]);
       } else {
-        return this.setTexture(PIXI.TextureCache["" + this.id + "_" + this.animationName + "1.png"]);
+        return this.setTexture(PIXI.TextureCache["" + this.id + "_" + this.orientation + "1.png"]);
       }
     };
 
@@ -346,8 +354,8 @@
       if (this.isPlaying) {
         this.currentFrame += this.animationSpeed;
         round = Math.round(this.currentFrame);
-        if (_.has(PIXI.TextureCache, "" + this.id + "_" + this.animationName + (round + 1) + ".png")) {
-          return this.setTexture(PIXI.TextureCache["" + this.id + "_" + this.animationName + round + ".png"]);
+        if (_.has(PIXI.TextureCache, "" + this.id + "_" + this.orientation + (round + 1) + ".png")) {
+          return this.setTexture(PIXI.TextureCache["" + this.id + "_" + this.orientation + round + ".png"]);
         } else {
           this.currentFrame = 1;
           if (this.playOnce) {
@@ -357,18 +365,43 @@
       }
     };
 
-    Sprite.prototype.getOrientation = function(x, y) {
+    Sprite.getOrientationIncrement = function(orientation) {
+      switch (orientation) {
+        case Kobu.ORIENTATION.UP:
+          return {
+            x: 0,
+            y: -32
+          };
+        case Kobu.ORIENTATION.LEFT:
+          return {
+            x: -32,
+            y: 0
+          };
+        case Kobu.ORIENTATION.RIGHT:
+          return {
+            x: 32,
+            y: 0
+          };
+        case Kobu.ORIENTATION.DOWN:
+          return {
+            x: 0,
+            y: 32
+          };
+      }
+    };
+
+    Sprite.getOrientation = function(x, y) {
       if (x > 0) {
-        return 3;
+        return Kobu.ORIENTATION.UP;
       }
       if (x < 0) {
-        return 2;
+        return Kobu.ORIENTATION.DOWN;
       }
       if (y > 0) {
-        return 1;
+        return Kobu.ORIENTATION.LEFT;
       }
       if (y < 0) {
-        return 0;
+        return Kobu.ORIENTATION.RIGHT;
       }
     };
 
@@ -376,17 +409,11 @@
 
   })(PIXI.Sprite);
 
-  Kobu.Sprite.orientation = {
-    0: 'up',
-    1: 'down',
-    2: 'left',
-    3: 'right'
-  };
-
 }).call(this);
 
 (function() {
   var _ref,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -394,32 +421,82 @@
     __extends(Character, _super);
 
     function Character() {
+      this.spriteIdChanged = __bind(this.spriteIdChanged, this);
       _ref = Character.__super__.constructor.apply(this, arguments);
       return _ref;
     }
 
+    Character.prototype.isOwner = false;
+
+    Character.prototype._moving = false;
+
     Character.prototype.initialize = function(opts) {
       this.sprite = new PIXI.DisplayObjectContainer;
-      this._sprite = new Kobu.Sprite(opts.spriteId);
+      _.extend(this.sprite, Backbone.Events);
+      this.on('change:spriteId', this.spriteIdChanged);
+      this.on('change:position', this.positionChanged);
+      return this.on('change:orientation', this.orientationChanged);
+    };
+
+    Character.prototype.spriteIdChanged = function(model, spriteId, options) {
+      this._sprite = new Kobu.Sprite(spriteId);
       this.sprite.addChild(this._sprite);
-      this.sprite.position = opts.position;
-      this._sprite.setOrientation(opts.orientation);
-      return this.on('change:position', this.positionChanged);
+      return this._sprite.setupEvents();
+    };
+
+    Character.prototype.orientationChanged = function(model, orientation, options) {
+      var increment, newPosition;
+      if (this.previous('orientation') !== orientation) {
+        this.sprite.trigger('change:orientation', orientation);
+        if (options.localTrigger != null) {
+          Kobu.game.network.setRequest(0, {
+            orientation: orientation
+          });
+        }
+      }
+      if (this.isOwner && this.previous('orientation') === orientation && !this._moving) {
+        increment = Kobu.Sprite.getOrientationIncrement(orientation);
+        newPosition = {
+          x: this.get('position').x + increment.x,
+          y: this.get('position').y + increment.y
+        };
+        return this.set({
+          position: newPosition
+        }, {
+          localTrigger: true
+        });
+      }
     };
 
     Character.prototype.positionChanged = function(model, value, options) {
-      var orientation,
-        _this = this;
-      console.log("Previous is " + (value.x - this.previous("position").x));
-      orientation = this._sprite.getOrientation(value.x - this.previous("position").x, value.y - this.previous("position").y);
-      return TweenLite.to(this.sprite.position, 0.4, {
-        x: value.x,
-        y: value.y,
-        ease: 'Linear.easeNone',
-        onStart: function() {
-          return _this._sprite.playAnimation(Kobu.Sprite.orientation[orientation]);
-        }
-      });
+      var _this = this;
+      if (options.localTrigger != null) {
+        Kobu.game.network.setRequest(0, {
+          position: value
+        });
+      }
+      if (this.previous('position')) {
+        return TweenLite.to(this.sprite.position, 0.4, {
+          x: value.x,
+          y: value.y,
+          ease: 'Linear.easeNone',
+          onStart: function() {
+            _this.sprite.trigger('playAnimation', {
+              name: ''
+            });
+            return _this._moving = true;
+          },
+          onComplete: function() {
+            return _this._moving = false;
+          }
+        });
+      } else {
+        return this.sprite.position = value;
+      }
+    };
+
+    Character.prototype.setOwner = function(tf) {
+      return this.isOwner = tf;
     };
 
     return Character;

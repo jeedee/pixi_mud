@@ -5,10 +5,13 @@ class Kobu.CharacterGroup extends Backbone.Collection
 		if @get(character.id)?
 			@get(character.id).set(character)
 		else
-			@add(new Kobu.Character(character))
+			@add(new Kobu.Character({id: character.id}))
+			@get(character.id).set(character)
 			Kobu.game.addChild(@get(character.id).sprite)
 			
-			Kobu.game.camera.target = @get(character.id).sprite if Kobu.game.player() == @get(character.id)
+			if Kobu.game.player() == @get(character.id)
+				Kobu.game.camera.target = @get(character.id).sprite 
+				Kobu.game.player().setOwner(true)
 		
 
 class Kobu.Main
@@ -45,31 +48,28 @@ class Kobu.Main
 		$(document).on('keydown', @handleKeyboard)
 	
 	handleKeyboard: (e) =>
-		newPosition = _.clone(@player().get('position'))
+		return unless Kobu.game.player()?
+		orientation = ''
 		
 		switch e.keyCode
-			when 37
-				newPosition.x += -32
-				anim = 'left'
-			when 38
-				newPosition.y += -32
-				anim = 'up'
-			when 39
-				newPosition.x += 32
-				anim = 'right'
-			when 40
-				newPosition.y += 32
-				anim = 'down'
-		console.log newPosition
-		@player().set({position: newPosition})
-		Kobu.game.network.setRequest(0, {position: newPosition})
+			# ORIENTATION
+			when 37 then orientation = Kobu.ORIENTATION.LEFT
+			when 38 then orientation = Kobu.ORIENTATION.UP
+			when 39 then orientation = Kobu.ORIENTATION.RIGHT
+			when 40 then orientation = Kobu.ORIENTATION.DOWN
 		
+		# Set data and trigger manually while waiting for force option
+		if orientation != ''
+			@player().set({orientation: orientation}, {silent: true})
+			@player().trigger('change:orientation', @player(), orientation, {localTrigger: true})
+			return false 
+				
 	start: ->
 		# Setup a Camera
 		@camera = new Kobu.Camera(@)
 		
 		# Load a map
-		@map = new Kobu.Map('largemap.json')
+		@map = new Kobu.Map('smallmap.json')
 		
 		# Setup network manager
 		@network = new Kobu.Network

@@ -1,23 +1,59 @@
 class Kobu.Character extends Backbone.Model
+	isOwner: false
+	
+	_moving: false
+	
 	initialize: (opts) ->
 		@sprite = new PIXI.DisplayObjectContainer
+		_.extend(@sprite, Backbone.Events)
 		
-		# Base sprite
-		@_sprite = new Kobu.Sprite(opts.spriteId)
-		@sprite.addChild(@_sprite)
-		@sprite.position = opts.position
-		
-		# Set proper orientation
-		@_sprite.setOrientation(opts.orientation)
+		# Triggers
+		@on('change:spriteId', @spriteIdChanged)
 		@on('change:position', @positionChanged)
+		@on('change:orientation', @orientationChanged)
 	
+	## Sprites & Display
+	# TODO: THIS SUCKS!
+	spriteIdChanged: (model, spriteId, options) =>
+		@_sprite = new Kobu.Sprite(spriteId)
+		
+		@sprite.addChild(@_sprite)
+		
+		@_sprite.setupEvents()
+	
+	## Orientation
+	orientationChanged: (model, orientation, options) ->
+		# If it has changed
+		if @previous('orientation') != orientation
+			@sprite.trigger('change:orientation', orientation)
+			
+			# Send network request if it has been locally triggered
+			Kobu.game.network.setRequest(0, {orientation: orientation}) if options.localTrigger?
+		
+		# If 
+		if @isOwner && @previous('orientation') == orientation && !@_moving
+			# Compute new position
+			increment = Kobu.Sprite.getOrientationIncrement(orientation)
+			newPosition = {x: @get('position').x+increment.x, y:@get('position').y+increment.y}
+			
+			@set({position: newPosition}, {localTrigger: true})
+	
+	## Position
 	positionChanged: (model, value, options)->
-		console.log "Previous is #{value.x-@previous("position").x}"
-		orientation = @_sprite.getOrientation(value.x-@previous("position").x, value.y-@previous("position").y)
+		if options.localTrigger?
+			Kobu.game.network.setRequest(0, {position: value})
 		
+		if @previous('position')
+			TweenLite.to(@sprite.position, 0.4, {x: value.x, y: value.y, ease:'Linear.easeNone', onStart: =>
+				@sprite.trigger('playAnimation', {name: ''})
+				@_moving = true
+			, onComplete: =>
+				@_moving = false
+			})
+		else
+			@sprite.position = value
 		
-		TweenLite.to(@sprite.position, 0.4, {x: value.x, y: value.y, ease:'Linear.easeNone', onStart: =>
-			@_sprite.playAnimation(Kobu.Sprite.orientation[orientation])
-		});
-		#@sprite.position = value
+	## Owner
+	setOwner: (tf) ->
+		@isOwner = tf
 

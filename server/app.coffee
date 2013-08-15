@@ -6,7 +6,7 @@ class Player extends Ness.NModel
 	
 	defaults: {
 		position: {x: 0, y: 0}
-		orientation: 3,
+		orientation: 'down',
 		type: 0,
 		spriteId: '01'
 	}
