@@ -1,4 +1,4 @@
 kobu
 ====
 
-HTML5 Mud with a Socket.IO backend
+Retro HTML5 mud
