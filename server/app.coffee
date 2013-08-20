@@ -1,7 +1,7 @@
 global.io = require("socket.io").listen(8000)
 Ness = require("../ness/lib/ness") 
 
-class Player extends Ness.NModel
+class Player extends Ness.Entity
 	zone = null
 	
 	defaults: {
@@ -35,7 +35,7 @@ class Player extends Ness.NModel
 		spriteId: {sync: true, read: Ness.EVERYONE}
 	}
 
-class Zone extends Ness.NCollection
+class Zone extends Ness.Zone
 	
 
 global.zones = {}
