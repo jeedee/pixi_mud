@@ -21,6 +21,11 @@ class Kobu.Character extends Backbone.Model
 		
 		@_sprite.setupEvents()
 	
+	## Attack
+	attack: (local=true)->
+		@sprite.trigger('playAnimation', 'attack')
+		Kobu.game.network.sendAction('attack', {}) if local
+	
 	## Orientation
 	orientationChanged: (model, orientation, options) ->
 		# If it has changed
@@ -45,7 +50,7 @@ class Kobu.Character extends Backbone.Model
 		
 		if @previous('position')
 			TweenLite.to(@sprite.position, 0.4, {x: value.x, y: value.y, ease:'Linear.easeNone', onStart: =>
-				@sprite.trigger('playAnimation', {name: ''})
+				@sprite.trigger('playAnimation', '')
 				@_moving = true
 			, onComplete: =>
 				@_moving = false

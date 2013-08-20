@@ -36,6 +36,7 @@ class Kobu.Sprite extends PIXI.Sprite
 	
 	## ANIMATION
 	playAnimation: (name, once=true) ->
+		console.log 'play ' + name
 		# TODO We save an animation name but don't use it
 		@animationName = name
 		@isPlaying = true
@@ -58,8 +59,8 @@ class Kobu.Sprite extends PIXI.Sprite
 			round = Math.round(@currentFrame)
 			
 			# Verify if a next frame is available
-			if _.has(PIXI.TextureCache, "#{@id}_#{@orientation}#{round+1}.png")
-				@setTexture(PIXI.TextureCache["#{@id}_#{@orientation}#{round}.png"])
+			if _.has(PIXI.TextureCache, "#{@id}_#{@orientation}#{@animationName}#{round+1}.png")
+				@setTexture(PIXI.TextureCache["#{@id}_#{@orientation}#{@animationName}#{round}.png"])
 			else
 				@currentFrame = 1
 				@stopAnimation() if @playOnce

@@ -11,9 +11,6 @@ class Player extends Ness.NModel
 		spriteId: '01'
 	}
 	
-	initialize: ->
-		super
-	
 	join: (zone) ->
 		# Store reference to current zone
 		@zone = zone
@@ -22,8 +19,14 @@ class Player extends Ness.NModel
 		global.zones[@zone].add @
 
 	leave: ->
+		# Say our goodbyes
+		@trigger('sendEveryone', @, 'action', {id: 'remove', data: {id: @get('id')}})
+		
 		# Remove ourself the zone
 		global.zones[@zone].remove @
+	
+	attack: =>
+		@trigger('sendEveryone', @, 'action', {id: 'attack', data: {id: @get('id')}})
 	
 	networkedAttributes:{
 		orientation: {sync: true, read: Ness.EVERYONE}
@@ -49,6 +52,10 @@ io.sockets.on "connection", (socket) ->
 		console.log "Client wants to set"
 		console.log data
 		clients[socket.id].setNetworked(socket, data)
+
+	socket.on 'action', (data) ->
+		console.log data
+		clients[socket.id].actionRequest(socket, data.id, data)
 
 	socket.on "disconnect", ->
 		clients[socket.id].leave()

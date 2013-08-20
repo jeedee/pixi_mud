@@ -77,7 +77,13 @@
       return _ref;
     }
 
-    CharacterGroup.prototype.initialize = function() {};
+    CharacterGroup.prototype.initialize = function() {
+      return this.on('remove', this.entityRemoved);
+    };
+
+    CharacterGroup.prototype.entityRemoved = function(model, collection, options) {
+      return Kobu.game.removeChild(model.sprite);
+    };
 
     CharacterGroup.prototype.findOrCreate = function(character) {
       if (this.get(character.id) != null) {
@@ -115,7 +121,7 @@
       this.world = new PIXI.DisplayObjectContainer;
       this.stage.addChild(this.world);
       document.body.appendChild(this.renderer.view);
-      this.loader = new PIXI.AssetLoader(['tiles/grass.png', 'sprites/01.json']);
+      this.loader = new PIXI.AssetLoader(['tiles/grass.png', 'sprites/01.json', 'sprites/01_attack.json']);
       this.loader.onComplete = _.bind(this.start, this);
       this.loader.load();
       this.characterGroup = new Kobu.CharacterGroup;
@@ -128,7 +134,11 @@
         return;
       }
       orientation = '';
+      console.log("Pressed " + e.keyCode);
       switch (e.keyCode) {
+        case 32:
+          this.player().attack();
+          return false;
         case 37:
           orientation = Kobu.ORIENTATION.LEFT;
           break;
@@ -156,7 +166,7 @@
 
     Main.prototype.start = function() {
       this.camera = new Kobu.Camera(this);
-      this.map = new Kobu.Map('smallmap.json');
+      this.map = new Kobu.Map('pierre1.json');
       this.network = new Kobu.Network;
       return window.requestAnimFrame(_.bind(this.render, this));
     };
@@ -256,6 +266,7 @@
       this.socket = io.connect("http://72.11.167.69:8000");
       this.socket.on('self', _.bind(this.selfRequest, this));
       this.socket.on('get', _.bind(this.getRequest, this));
+      this.socket.on('action', _.bind(this.actionRequest, this));
     }
 
     Network.prototype.setRequest = function(id, data) {
@@ -270,6 +281,38 @@
       if (data.id != null) {
         return Kobu.game.characterGroup.findOrCreate(data);
       }
+    };
+
+    Network.prototype.sendAction = function(id, data) {
+      var request;
+      request = {
+        id: id,
+        data: data
+      };
+      return this.socket.emit('action', request);
+    };
+
+    Network.prototype.actionRequest = function(request) {
+      var action, data, fn;
+      action = request.id.charAt(0).toUpperCase() + request.id.slice(1);
+      if (request.data != null) {
+        data = request.data;
+      }
+      fn = this["action" + action];
+      if (typeof fn === 'function') {
+        return fn(data);
+      } else {
+        return console.log("Server sent an unsupported RPC! " + action);
+      }
+    };
+
+    Network.prototype.actionAttack = function(data) {
+      return Kobu.game.characterGroup.get(data.id).attack(false);
+    };
+
+    Network.prototype.actionRemove = function(data) {
+      console.log('removing');
+      return Kobu.game.characterGroup.remove(data.id);
     };
 
     return Network;
@@ -331,6 +374,7 @@
       if (once == null) {
         once = true;
       }
+      console.log('play ' + name);
       this.animationName = name;
       this.isPlaying = true;
       return this.playOnce = once;
@@ -354,8 +398,8 @@
       if (this.isPlaying) {
         this.currentFrame += this.animationSpeed;
         round = Math.round(this.currentFrame);
-        if (_.has(PIXI.TextureCache, "" + this.id + "_" + this.orientation + (round + 1) + ".png")) {
-          return this.setTexture(PIXI.TextureCache["" + this.id + "_" + this.orientation + round + ".png"]);
+        if (_.has(PIXI.TextureCache, "" + this.id + "_" + this.orientation + this.animationName + (round + 1) + ".png")) {
+          return this.setTexture(PIXI.TextureCache["" + this.id + "_" + this.orientation + this.animationName + round + ".png"]);
         } else {
           this.currentFrame = 1;
           if (this.playOnce) {
@@ -444,6 +488,16 @@
       return this._sprite.setupEvents();
     };
 
+    Character.prototype.attack = function(local) {
+      if (local == null) {
+        local = true;
+      }
+      this.sprite.trigger('playAnimation', 'attack');
+      if (local) {
+        return Kobu.game.network.sendAction('attack', {});
+      }
+    };
+
     Character.prototype.orientationChanged = function(model, orientation, options) {
       var increment, newPosition;
       if (this.previous('orientation') !== orientation) {
@@ -481,9 +535,7 @@
           y: value.y,
           ease: 'Linear.easeNone',
           onStart: function() {
-            _this.sprite.trigger('playAnimation', {
-              name: ''
-            });
+            _this.sprite.trigger('playAnimation', '');
             return _this._moving = true;
           },
           onComplete: function() {
