@@ -13,7 +13,13 @@ class Player extends Ness.Entity
 		@zone.sendEveryone('action', {id: 'attack', data: {id: @get('id')}})
 	
 	actionChat: (data) =>
-		@zone.sendEveryone('action', {id: 'chat', data: {id: @get('id'), text: data.text}})
+		text = data.text
+		
+		if text[0] != '/'
+			@zone.sendEveryone('action', {id: 'chat', data: {id: @get('id'), text: data.text}})
+		else
+			command = text.slice(1).split(' ')[0]
+			console.log "Handle command: #{command}"			
 	
 	networkedAttributes:{
 		orientation: {sync: true, read: Ness.EVERYONE}
