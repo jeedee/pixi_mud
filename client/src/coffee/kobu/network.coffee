@@ -32,7 +32,7 @@ class Kobu.Network
 			fn(data)
 		else
 			console.log "Server sent an unsupported RPC! #{action}"
-			
+		
 	## ACTIONS!
 	actionAttack: (data) ->
 		Kobu.game.networkObjects.get(data.id).attack(false)

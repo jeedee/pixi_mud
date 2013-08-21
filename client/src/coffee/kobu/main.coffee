@@ -42,7 +42,7 @@ class Kobu.Main
 		@objectLayer = new PIXI.DisplayObjectContainer
 		
 		# Append the renderer to the body
-		$('body').append(@renderer.view)
+		$('body #canvas').append(@renderer.view)
 		$('body').append("""<input type="text" id="chat" /> """)
 		$('#chat').css('width', '900px')
 		

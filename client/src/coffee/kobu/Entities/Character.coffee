@@ -19,6 +19,8 @@ class Kobu.Character extends Backbone.Model
 		@on('change:typing', @typing)
 		@on('change:position', @positionChanged)
 		@on('change:orientation', @orientationChanged)
+		
+		@on('change:hp', @hpChanged)
 
 	
 	## Sprites & Display
@@ -142,7 +144,38 @@ class Kobu.Character extends Backbone.Model
 		else
 			@sprite.position = {x: value.x*32, y: value.y*32}
 	
+	## Health
+	showHpBar: (percent) ->
+		window.clearTimeout(@hpTimeout) if @hpTimeout?
+		@hpTween.kill() if @hpTween?
+		
+		@sprite.removeChild @healthBar if @healthBar?
+		
+		# The Rectangle
+		@healthBar = new PIXI.Graphics
+		@healthBar.beginFill(0xff0000);
+		@healthBar.drawRect(0, -10, percent / 3, 5);
+		@sprite.addChild @healthBar
+		
+		# Clear bar
+		@hpTimeout = window.setTimeout(_.bind(@clearHpBar, @), 3000)
+	
+	clearHpBar: ->
+		@hpTween = TweenLite.to(@healthBar, 1, {alpha: 0, ease:'Linear.easeNone'})
+	
+	hpChanged: (model, value, options) ->
+		healthPercent = @get('hp')*100 / @get('totalHp')
+		
+		if @isOwner
+			$('div#health').text("#{@get('hp')}")
+			$('div#health').css("width", "#{healthPercent}px")
+		
+		@showHpBar(healthPercent) if healthPercent < 100
+	
 	## Owner
 	setOwner: (tf) ->
 		@isOwner = tf
+		
+		# Force hp display
+		@trigger('change:hp')
 

@@ -121,7 +121,7 @@
       this.world = new PIXI.DisplayObjectContainer;
       this.stage.addChild(this.world);
       this.objectLayer = new PIXI.DisplayObjectContainer;
-      $('body').append(this.renderer.view);
+      $('body #canvas').append(this.renderer.view);
       $('body').append("<input type=\"text\" id=\"chat\" /> ");
       $('#chat').css('width', '900px');
       this.loader = new PIXI.AssetLoader(['tiles/atlas1.png', 'tiles/atlas2.png', 'tiles/atlas3.png', 'tiles/atlas4.png', 'sprites/01.json', 'sprites/01_attack.json']);
@@ -550,7 +550,8 @@
       this.on('change:spriteId', this.spriteIdChanged);
       this.on('change:typing', this.typing);
       this.on('change:position', this.positionChanged);
-      return this.on('change:orientation', this.orientationChanged);
+      this.on('change:orientation', this.orientationChanged);
+      return this.on('change:hp', this.hpChanged);
     };
 
     Character.prototype.spriteIdChanged = function(model, spriteId, options) {
@@ -715,8 +716,45 @@
       }
     };
 
+    Character.prototype.showHpBar = function(percent) {
+      if (this.hpTimeout != null) {
+        window.clearTimeout(this.hpTimeout);
+      }
+      if (this.hpTween != null) {
+        this.hpTween.kill();
+      }
+      if (this.healthBar != null) {
+        this.sprite.removeChild(this.healthBar);
+      }
+      this.healthBar = new PIXI.Graphics;
+      this.healthBar.beginFill(0xff0000);
+      this.healthBar.drawRect(0, -10, percent / 3, 5);
+      this.sprite.addChild(this.healthBar);
+      return this.hpTimeout = window.setTimeout(_.bind(this.clearHpBar, this), 3000);
+    };
+
+    Character.prototype.clearHpBar = function() {
+      return this.hpTween = TweenLite.to(this.healthBar, 1, {
+        alpha: 0,
+        ease: 'Linear.easeNone'
+      });
+    };
+
+    Character.prototype.hpChanged = function(model, value, options) {
+      var healthPercent;
+      healthPercent = this.get('hp') * 100 / this.get('totalHp');
+      if (this.isOwner) {
+        $('div#health').text("" + (this.get('hp')));
+        $('div#health').css("width", "" + healthPercent + "px");
+      }
+      if (healthPercent < 100) {
+        return this.showHpBar(healthPercent);
+      }
+    };
+
     Character.prototype.setOwner = function(tf) {
-      return this.isOwner = tf;
+      this.isOwner = tf;
+      return this.trigger('change:hp');
     };
 
     return Character;

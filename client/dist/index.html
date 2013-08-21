@@ -5,6 +5,15 @@
 	<head>
 		<title></title>
 		<style>
+		div#canvas
+		{
+			position: relative;
+			width: 900px;
+			
+			margin-left: auto;
+			margin-right: auto;
+		}
+		
 		canvas, input {
 			margin-left: auto;
 			margin-right: auto;
@@ -16,11 +25,25 @@
 			font-size: 20px;
 		}
 		
+		div#health
+		{
+			background-color: red;
+			color: white;
+			text-align: center;
+			width: 0px;
+			position: absolute;
+			bottom: 10px;
+			right: 10px;
+		}
 		
 		</style>
 	</head>
 	
 	<body>
+		<div id="canvas">
+			<div id="health">&nbsp;</div>
+		</div>
+		
 		<script src="http://72.11.167.69:8000/socket.io/socket.io.js"></script>
 		<script type="text/javascript" src="plugins.js"></script>
 		<script type="text/javascript" src="app.js"></script>
