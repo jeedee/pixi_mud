@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" width="32" height="32" tilewidth="32" tileheight="32">
+ <tileset firstgid="1" name="atlas1" tilewidth="32" tileheight="32">
+  <image source="../tiles/atlas1.png" width="1024" height="1024"/>
+  <terraintypes>
+   <terrain name="Dirt" tile="-1"/>
+   <terrain name="Water" tile="-1"/>
+  </terraintypes>
+  <tile id="79" terrain=",,,0"/>
+  <tile id="80" terrain=",,0,0"/>
+  <tile id="81" terrain=",,0,"/>
+  <tile id="111" terrain=",0,,0"/>
+  <tile id="112" terrain="0,0,0,0"/>
+  <tile id="113" terrain="0,,0,"/>
+  <tile id="143" terrain=",0,,"/>
+  <tile id="144" terrain="0,0,,"/>
+  <tile id="145" terrain="0,,,"/>
+  <tile id="358" terrain="1,,,"/>
+  <tile id="359" terrain="0,0,,"/>
+  <tile id="360" terrain=",1,,"/>
+  <tile id="390" terrain="0,,0,"/>
+  <tile id="391" terrain="1,1,1,1"/>
+  <tile id="392" terrain=",0,,0"/>
+  <tile id="422" terrain=",,1,"/>
+  <tile id="423" terrain=",,0,0"/>
+  <tile id="424" terrain=",,,1"/>
+ </tileset>
+ <tileset firstgid="1025" name="atlas2" tilewidth="32" tileheight="32">
+  <image source="../tiles/atlas2.png" width="1024" height="1024"/>
+ </tileset>
+ <tileset firstgid="2049" name="meta_tiles" tilewidth="32" tileheight="32">
+  <image source="../tiles/meta_tiles.png" width="67" height="34"/>
+  <tile id="0">
+   <properties>
+    <property name="WALKABLE" value="False"/>
+   </properties>
+  </tile>
+ </tileset>
+ <layer name="Base" width="32" height="32">
+  <data encoding="base64" compression="zlib">
+   eJydlcttxDAQQ+U+00rOQRqy1UnaySFeQHj7SO3mMEgWkudDcqg5xph3nHfw93XHib8X7q+/11zr3fX+xH3medSx/BfqWF7etR441xzPc7JP3ic+1uuKmc3O81PO1/lSv3M4DoZd6pv9EgMGc0zUSf3YGTkybsi/cbx+m7S61rKalpM1U13jM81GTSTNEdu0i4Zv2g/jwfax5Wh8XQjTX8KOGmq7YTiadxFn00DD1rBPXsMZzVsMU8OEWNhem36oz6QLctEwTZ5j3pZwIg5N8+bxpouGS9J489nkx6/sp8238z5yl3ybtU1b5nE2T8Jg/ebrGOPnzfg+nvVrOrQ+Hvc/j7/4b/2PO3a6WvtKXLZem86YP2kj1bc9Ylh/9Nt0P+nesOJZ80/+b9qlptObYvw0DlJftjO2H/ZOpO9tN81Prbc2c/Ix80rj2t4T03zyMmqa8yT8TKPv9Go4N1za28pvkzcnTbT+2x4lD2864zvJPbF3h2cJL5s9+Zm9m02Du/cr5dh5Bbngjr3ifYaH1SO3SRfNz5M3GtfkJfmU6WOnr+TrScu/cEjdOg==
+  </data>
+ </layer>
+ <layer name="Base2" width="32" height="32">
+  <data encoding="base64" compression="zlib">
+   eJzt0LsSwUAYBeCV2XiVeJMoUakp0GFQpKRAj0Lp7jXcxnO4PYeTmTSJJPY3a2LMf2a+Zjc5JxNHCuEwlpCpIotItfddFnhmCSvifkahWyUH9BzhBHbADOYh566spv0beu7wgFLADvYh566ypn1pCmFCGrrS7wJX+Xru6mna50THSkXf2TF31FTQVSWqadzvo2tANPyj/ZYhRJuoY/g7ikZ4t0pGeHdMNCHuxX1f0v+f9+O3zl/eX6NrQ7TVuM/5veQg7ykksF+HhqfJ+7z/YZ6C1M1R
+  </data>
+ </layer>
+ <layer name="Base 3" width="32" height="32">
+  <data encoding="base64" compression="zlib">
+   eJwzZGVgMCQRGwExtQCpdlPb/kBW0nEQFe0fCoCNhYGBnUTMwUI9+9XIMEuDivYPFnCXjTpq8IFcZtxyf5HMjmfFzv5Lof3DAejgCUMQyCEgTwzopYIZ6MAHi5m0sGc4AA1GBgZNRgR/Nwnh5EtALb4wPwa10wNIeyLZfxuq5yiSGD3i7jiV7MCW9tABKWGMC+Ar3wiB2zj0oqcFegPktHCMhu44jiWNEQOyiQhz9LQ6Esqd9QT8qD/IwmAe0D3zgXgBFndhk8NVD6Knh9VofFz+3gcU3w/EB7DI45OjFGhDzbwHpO8D8QMsdiDL7WZiYNjDRL49uMA/oPx/kBosbVtkudtAu+8g2b9mkKUjUgG5ZTa+8MTWBuuhMJyIbdfp0SE++om0AwDqnzsy
+  </data>
+ </layer>
+ <layer name="Meta" width="32" height="32">
+  <data encoding="base64" compression="zlib">
+   eJxjYBgFIxkwcgwspqUbBzp8hoP9+NxArPwoGAVDHQxU3hu1f3CAgfb/qP0jO/2NglGAL32P5oFRQA4AAG+HBlU=
+  </data>
+ </layer>
+</map>

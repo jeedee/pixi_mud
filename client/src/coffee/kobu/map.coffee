@@ -1,24 +1,36 @@
+class Kobu.MapTile extends PIXI.Texture
+	tileProperties = {}
+	constructor: ->
+		super
+
 class Kobu.Map
 	constructor: (filename) ->
 		@tiles = new Array
-		
 		@container = new PIXI.DisplayObjectContainer
 		Kobu.game.addChild(@container)
 		
 		$.getJSON("#{filename}", @parseMap)
 	
+	tileProperty: (x, y, property) ->
+		if @tilesProperties[x]?[y+1]?[property]?
+			return @tilesProperties[x][y+1][property]
+		else
+			return null
+		
 	parseMap: (map) =>
 		timerStart = Date.now()
 		@width = map.width
 		@height = map.height
 		
+		@tilesProperties = [0...@width].map (x)->
+		  [0...@height].map (y) ->
+		
 		# Cache the tiles
 		for tileset in map.tilesets
 			index = tileset.firstgid
 			totalTiles = (tileset.imageheight / tileset.tileheight)*(tileset.imagewidth / tileset.tilewidth)
-			horizontalTiles = tileset.imagewidth / tileset.tilewidth
 			for i in [0..totalTiles-1]
-				@tiles[index] = @getTile(i, tileset.name, horizontalTiles)
+				@tiles[index] = @getTile(i, tileset)
 				index +=1
 		
 		# Draw the map
@@ -27,7 +39,14 @@ class Kobu.Map
 			i = 0
 			for y in [0..map.height-1]
 				for x in [0..map.width-1]
-					layer.addChild @makeSprite(map.layers[z].data[i],x,y) if map.layers[z].data[i] != 0
+					idx = map.layers[z].data[i]
+					
+					# Manage layer draw order
+					if map.layers[z].name == 'Meta' || map.layers[z].name == 'meta'
+						@tilesProperties[x][y] = @tiles[idx].tileProperties if @tiles[idx]?.tileProperties?
+					else
+						layer.addChild @makeSprite(idx,x,y) if map.layers[z].data[i] != 0
+					
 					i += 1
 					#console.log "#{x}, #{y}, #{z}"
 			@container.addChild(layer)
@@ -42,12 +61,16 @@ class Kobu.Map
 		
 		return sprite
 		
-	getTile: (index, tileset, horizontalTiles) ->
+	getTile: (index, tileset) ->
+		horizontalTiles = tileset.imagewidth / tileset.tilewidth
+		
 		tileX = ~~(index % horizontalTiles)
 		tileY = ~~(index / horizontalTiles)
 		
-		tileset = new PIXI.Texture.fromImage("tiles/#{tileset}.png")
-		texture = new PIXI.Texture(tileset, new PIXI.Rectangle(tileX*32,(tileY)*32,32,32))
-
-		return texture
+		tilesetImage = new PIXI.Texture.fromImage("tiles/#{tileset.name}.png")
+		tile = new Kobu.MapTile(tilesetImage, new PIXI.Rectangle(tileX*32,(tileY)*32,32,32))
+		
+		tile.tileProperties = tileset.tileproperties[index] if tileset.tileproperties?[index]?
+		
+		return tile
 		

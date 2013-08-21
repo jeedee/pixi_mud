@@ -36,7 +36,6 @@ class Kobu.Sprite extends PIXI.Sprite
 	
 	## ANIMATION
 	playAnimation: (name, once=true) ->
-		console.log 'play ' + name
 		# TODO We save an animation name but don't use it
 		@animationName = name
 		@isPlaying = true
@@ -69,10 +68,10 @@ class Kobu.Sprite extends PIXI.Sprite
 	## HELPERS
 	@getOrientationIncrement: (orientation) ->
 		switch orientation
-			when Kobu.ORIENTATION.UP then return {x: 0, y: -32}
-			when Kobu.ORIENTATION.LEFT then return {x: -32, y: 0}
-			when Kobu.ORIENTATION.RIGHT then return {x: 32, y: 0}
-			when Kobu.ORIENTATION.DOWN then return {x: 0, y: 32}
+			when Kobu.ORIENTATION.UP then return {x: 0, y: -1}
+			when Kobu.ORIENTATION.LEFT then return {x: -1, y: 0}
+			when Kobu.ORIENTATION.RIGHT then return {x: 1, y: 0}
+			when Kobu.ORIENTATION.DOWN then return {x: 0, y: 1}
 	
 	@getOrientation: (x, y) ->
 		if x > 0 then return Kobu.ORIENTATION.UP

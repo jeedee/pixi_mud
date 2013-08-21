@@ -121,7 +121,7 @@
       this.world = new PIXI.DisplayObjectContainer;
       this.stage.addChild(this.world);
       document.body.appendChild(this.renderer.view);
-      this.loader = new PIXI.AssetLoader(['tiles/grass.png', 'sprites/01.json', 'sprites/01_attack.json']);
+      this.loader = new PIXI.AssetLoader(['tiles/atlas1.png', 'tiles/atlas2.png', 'tiles/atlas3.png', 'tiles/atlas4.png', 'sprites/01.json', 'sprites/01_attack.json']);
       this.loader.onComplete = _.bind(this.start, this);
       this.loader.load();
       this.characterGroup = new Kobu.CharacterGroup;
@@ -134,7 +134,6 @@
         return;
       }
       orientation = '';
-      console.log("Pressed " + e.keyCode);
       switch (e.keyCode) {
         case 32:
           this.player().attack();
@@ -166,7 +165,7 @@
 
     Main.prototype.start = function() {
       this.camera = new Kobu.Camera(this);
-      this.map = new Kobu.Map('pierre1.json');
+      this.map = new Kobu.Map('maps/default.json');
       this.network = new Kobu.Network;
       return window.requestAnimFrame(_.bind(this.render, this));
     };
@@ -192,7 +191,24 @@
 }).call(this);
 
 (function() {
-  var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
+  var __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
+
+  Kobu.MapTile = (function(_super) {
+    var tileProperties;
+
+    __extends(MapTile, _super);
+
+    tileProperties = {};
+
+    function MapTile() {
+      MapTile.__super__.constructor.apply(this, arguments);
+    }
+
+    return MapTile;
+
+  })(PIXI.Texture);
 
   Kobu.Map = (function() {
     function Map(filename) {
@@ -204,29 +220,56 @@
       $.getJSON("" + filename, this.parseMap);
     }
 
+    Map.prototype.tileProperty = function(x, y, property) {
+      var _ref, _ref1;
+      if (((_ref = this.tilesProperties[x]) != null ? (_ref1 = _ref[y + 1]) != null ? _ref1[property] : void 0 : void 0) != null) {
+        return this.tilesProperties[x][y + 1][property];
+      } else {
+        return null;
+      }
+    };
+
     Map.prototype.parseMap = function(map) {
-      var horizontalTiles, i, index, layer, tileset, timerStart, totalTiles, x, y, z, _i, _j, _k, _l, _len, _m, _ref, _ref1, _ref2, _ref3, _ref4;
+      var i, idx, index, layer, tileset, timerStart, totalTiles, x, y, z, _i, _j, _k, _l, _len, _m, _n, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _results;
       timerStart = Date.now();
       this.width = map.width;
       this.height = map.height;
-      _ref = map.tilesets;
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        tileset = _ref[_i];
+      this.tilesProperties = (function() {
+        _results = [];
+        for (var _i = 0, _ref = this.width; 0 <= _ref ? _i < _ref : _i > _ref; 0 <= _ref ? _i++ : _i--){ _results.push(_i); }
+        return _results;
+      }).apply(this).map(function(x) {
+        var _i, _ref, _results;
+        return (function() {
+          _results = [];
+          for (var _i = 0, _ref = this.height; 0 <= _ref ? _i < _ref : _i > _ref; 0 <= _ref ? _i++ : _i--){ _results.push(_i); }
+          return _results;
+        }).apply(this).map(function(y) {});
+      });
+      _ref1 = map.tilesets;
+      for (_j = 0, _len = _ref1.length; _j < _len; _j++) {
+        tileset = _ref1[_j];
         index = tileset.firstgid;
         totalTiles = (tileset.imageheight / tileset.tileheight) * (tileset.imagewidth / tileset.tilewidth);
-        horizontalTiles = tileset.imagewidth / tileset.tilewidth;
-        for (i = _j = 0, _ref1 = totalTiles - 1; 0 <= _ref1 ? _j <= _ref1 : _j >= _ref1; i = 0 <= _ref1 ? ++_j : --_j) {
-          this.tiles[index] = this.getTile(i, tileset.name, horizontalTiles);
+        for (i = _k = 0, _ref2 = totalTiles - 1; 0 <= _ref2 ? _k <= _ref2 : _k >= _ref2; i = 0 <= _ref2 ? ++_k : --_k) {
+          this.tiles[index] = this.getTile(i, tileset);
           index += 1;
         }
       }
-      for (z = _k = 0, _ref2 = map.layers.length - 1; 0 <= _ref2 ? _k <= _ref2 : _k >= _ref2; z = 0 <= _ref2 ? ++_k : --_k) {
+      for (z = _l = 0, _ref3 = map.layers.length - 1; 0 <= _ref3 ? _l <= _ref3 : _l >= _ref3; z = 0 <= _ref3 ? ++_l : --_l) {
         layer = new PIXI.DisplayObjectContainer;
         i = 0;
-        for (y = _l = 0, _ref3 = map.height - 1; 0 <= _ref3 ? _l <= _ref3 : _l >= _ref3; y = 0 <= _ref3 ? ++_l : --_l) {
-          for (x = _m = 0, _ref4 = map.width - 1; 0 <= _ref4 ? _m <= _ref4 : _m >= _ref4; x = 0 <= _ref4 ? ++_m : --_m) {
-            if (map.layers[z].data[i] !== 0) {
-              layer.addChild(this.makeSprite(map.layers[z].data[i], x, y));
+        for (y = _m = 0, _ref4 = map.height - 1; 0 <= _ref4 ? _m <= _ref4 : _m >= _ref4; y = 0 <= _ref4 ? ++_m : --_m) {
+          for (x = _n = 0, _ref5 = map.width - 1; 0 <= _ref5 ? _n <= _ref5 : _n >= _ref5; x = 0 <= _ref5 ? ++_n : --_n) {
+            idx = map.layers[z].data[i];
+            if (map.layers[z].name === 'Meta' || map.layers[z].name === 'meta') {
+              if (((_ref6 = this.tiles[idx]) != null ? _ref6.tileProperties : void 0) != null) {
+                this.tilesProperties[x][y] = this.tiles[idx].tileProperties;
+              }
+            } else {
+              if (map.layers[z].data[i] !== 0) {
+                layer.addChild(this.makeSprite(idx, x, y));
+              }
             }
             i += 1;
           }
@@ -245,13 +288,17 @@
       return sprite;
     };
 
-    Map.prototype.getTile = function(index, tileset, horizontalTiles) {
-      var texture, tileX, tileY;
+    Map.prototype.getTile = function(index, tileset) {
+      var horizontalTiles, tile, tileX, tileY, tilesetImage, _ref;
+      horizontalTiles = tileset.imagewidth / tileset.tilewidth;
       tileX = ~~(index % horizontalTiles);
       tileY = ~~(index / horizontalTiles);
-      tileset = new PIXI.Texture.fromImage("tiles/" + tileset + ".png");
-      texture = new PIXI.Texture(tileset, new PIXI.Rectangle(tileX * 32, tileY * 32, 32, 32));
-      return texture;
+      tilesetImage = new PIXI.Texture.fromImage("tiles/" + tileset.name + ".png");
+      tile = new Kobu.MapTile(tilesetImage, new PIXI.Rectangle(tileX * 32, tileY * 32, 32, 32));
+      if (((_ref = tileset.tileproperties) != null ? _ref[index] : void 0) != null) {
+        tile.tileProperties = tileset.tileproperties[index];
+      }
+      return tile;
     };
 
     return Map;
@@ -374,7 +421,6 @@
       if (once == null) {
         once = true;
       }
-      console.log('play ' + name);
       this.animationName = name;
       this.isPlaying = true;
       return this.playOnce = once;
@@ -414,22 +460,22 @@
         case Kobu.ORIENTATION.UP:
           return {
             x: 0,
-            y: -32
+            y: -1
           };
         case Kobu.ORIENTATION.LEFT:
           return {
-            x: -32,
+            x: -1,
             y: 0
           };
         case Kobu.ORIENTATION.RIGHT:
           return {
-            x: 32,
+            x: 1,
             y: 0
           };
         case Kobu.ORIENTATION.DOWN:
           return {
             x: 0,
-            y: 32
+            y: 1
           };
       }
     };
@@ -514,11 +560,14 @@
           x: this.get('position').x + increment.x,
           y: this.get('position').y + increment.y
         };
-        return this.set({
-          position: newPosition
-        }, {
-          localTrigger: true
-        });
+        console.log("Checking at " + newPosition.x + " " + newPosition.y);
+        if (!Kobu.game.map.tileProperty(newPosition.x, newPosition.y, 'WALKABLE')) {
+          return this.set({
+            position: newPosition
+          }, {
+            localTrigger: true
+          });
+        }
       }
     };
 
@@ -531,8 +580,8 @@
       }
       if (this.previous('position')) {
         return TweenLite.to(this.sprite.position, 0.4, {
-          x: value.x,
-          y: value.y,
+          x: value.x * 32,
+          y: value.y * 32,
           ease: 'Linear.easeNone',
           onStart: function() {
             _this.sprite.trigger('playAnimation', '');
@@ -543,7 +592,10 @@
           }
         });
       } else {
-        return this.sprite.position = value;
+        return this.sprite.position = {
+          x: value.x * 32,
+          y: value.y * 32
+        };
       }
     };
 

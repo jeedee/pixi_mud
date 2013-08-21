@@ -42,7 +42,7 @@ class Kobu.Main
 		document.body.appendChild(@renderer.view)
 		
 		# Load assets
-		@loader = new PIXI.AssetLoader(['tiles/grass.png', 'sprites/01.json', 'sprites/01_attack.json'])
+		@loader = new PIXI.AssetLoader(['tiles/atlas1.png','tiles/atlas2.png','tiles/atlas3.png','tiles/atlas4.png', 'sprites/01.json', 'sprites/01_attack.json'])
 		@loader.onComplete = _.bind(@start, @)
 		@loader.load()
 		
@@ -56,7 +56,7 @@ class Kobu.Main
 		return unless Kobu.game.player()?
 		orientation = ''
 		
-		console.log "Pressed #{e.keyCode}"
+#		console.log "Pressed #{e.keyCode}"
 		switch e.keyCode
 			# ORIENTATION
 			when 32
@@ -78,7 +78,7 @@ class Kobu.Main
 		@camera = new Kobu.Camera(@)
 		
 		# Load a map
-		@map = new Kobu.Map('pierre1.json')
+		@map = new Kobu.Map('maps/default.json')
 		
 		# Setup network manager
 		@network = new Kobu.Network

@@ -41,7 +41,10 @@ class Kobu.Character extends Backbone.Model
 			increment = Kobu.Sprite.getOrientationIncrement(orientation)
 			newPosition = {x: @get('position').x+increment.x, y:@get('position').y+increment.y}
 			
-			@set({position: newPosition}, {localTrigger: true})
+			# Check for walkability
+			console.log "Checking at #{newPosition.x} #{newPosition.y}"
+			if not Kobu.game.map.tileProperty(newPosition.x, newPosition.y, 'WALKABLE')
+				@set({position: newPosition}, {localTrigger: true})
 	
 	## Position
 	positionChanged: (model, value, options)->
@@ -49,14 +52,14 @@ class Kobu.Character extends Backbone.Model
 			Kobu.game.network.setRequest(0, {position: value})
 		
 		if @previous('position')
-			TweenLite.to(@sprite.position, 0.4, {x: value.x, y: value.y, ease:'Linear.easeNone', onStart: =>
+			TweenLite.to(@sprite.position, 0.4, {x: value.x*32, y: value.y*32, ease:'Linear.easeNone', onStart: =>
 				@sprite.trigger('playAnimation', '')
 				@_moving = true
 			, onComplete: =>
 				@_moving = false
 			})
 		else
-			@sprite.position = value
+			@sprite.position = {x: value.x*32, y: value.y*32}
 		
 	## Owner
 	setOwner: (tf) ->
