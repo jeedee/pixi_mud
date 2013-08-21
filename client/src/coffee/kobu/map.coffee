@@ -5,10 +5,14 @@ class Kobu.MapTile extends PIXI.Texture
 
 class Kobu.Map
 	constructor: (filename) ->
+		# Tiles cache
 		@tiles = new Array
-		@container = new PIXI.DisplayObjectContainer
-		Kobu.game.addChild(@container)
 		
+		# Container for the map
+		@container = new PIXI.DisplayObjectContainer
+		Kobu.game.world.addChild(@container)
+		
+		# Load the map
 		$.getJSON("#{filename}", @parseMap)
 	
 	tileProperty: (x, y, property) ->
@@ -37,6 +41,7 @@ class Kobu.Map
 		for z in [0..map.layers.length-1]
 			layer = new PIXI.DisplayObjectContainer
 			i = 0
+			@container.addChild Kobu.game.objectLayer if z == 2
 			for y in [0..map.height-1]
 				for x in [0..map.width-1]
 					idx = map.layers[z].data[i]

@@ -15,7 +15,7 @@ class Kobu.Network
 	
 	getRequest: (data) ->
 		if data.id?
-			Kobu.game.characterGroup.findOrCreate(data)
+			Kobu.game.networkObjects.findOrCreate(data)
 		
 	## ACTION
 	sendAction: (id, data) ->
@@ -24,6 +24,7 @@ class Kobu.Network
 	
 	actionRequest: (request) ->
 		action = request.id.charAt(0).toUpperCase() + request.id.slice(1)
+		
 		data = request.data if request.data?
 		
 		fn = @["action#{action}"]
@@ -32,11 +33,12 @@ class Kobu.Network
 		else
 			console.log "Server sent an unsupported RPC! #{action}"
 			
-	
 	## ACTIONS!
 	actionAttack: (data) ->
-		Kobu.game.characterGroup.get(data.id).attack(false)
+		Kobu.game.networkObjects.get(data.id).attack(false)
 
+	actionChat: (data) ->
+		Kobu.game.networkObjects.get(data.id).sayText(data.text)
+	
 	actionRemove: (data) ->
-		console.log 'removing'
-		Kobu.game.characterGroup.remove(data.id)
+		Kobu.game.networkObjects.remove(data.id)

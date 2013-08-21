@@ -69,23 +69,23 @@
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
-  Kobu.CharacterGroup = (function(_super) {
-    __extends(CharacterGroup, _super);
+  Kobu.networkObjects = (function(_super) {
+    __extends(networkObjects, _super);
 
-    function CharacterGroup() {
-      _ref = CharacterGroup.__super__.constructor.apply(this, arguments);
+    function networkObjects() {
+      _ref = networkObjects.__super__.constructor.apply(this, arguments);
       return _ref;
     }
 
-    CharacterGroup.prototype.initialize = function() {
+    networkObjects.prototype.initialize = function() {
       return this.on('remove', this.entityRemoved);
     };
 
-    CharacterGroup.prototype.entityRemoved = function(model, collection, options) {
+    networkObjects.prototype.entityRemoved = function(model, collection, options) {
       return Kobu.game.removeChild(model.sprite);
     };
 
-    CharacterGroup.prototype.findOrCreate = function(character) {
+    networkObjects.prototype.findOrCreate = function(character) {
       if (this.get(character.id) != null) {
         return this.get(character.id).set(character);
       } else {
@@ -101,7 +101,7 @@
       }
     };
 
-    return CharacterGroup;
+    return networkObjects;
 
   })(Backbone.Collection);
 
@@ -109,7 +109,7 @@
     Main.prototype.playerId = null;
 
     Main.prototype.player = function() {
-      return this.characterGroup.get(this.playerId);
+      return this.networkObjects.get(this.playerId);
     };
 
     function Main() {
@@ -120,11 +120,14 @@
       this.renderer = PIXI.autoDetectRenderer(900, 700);
       this.world = new PIXI.DisplayObjectContainer;
       this.stage.addChild(this.world);
-      document.body.appendChild(this.renderer.view);
+      this.objectLayer = new PIXI.DisplayObjectContainer;
+      $('body').append(this.renderer.view);
+      $('body').append("<input type=\"text\" id=\"chat\" /> ");
+      $('#chat').css('width', '900px');
       this.loader = new PIXI.AssetLoader(['tiles/atlas1.png', 'tiles/atlas2.png', 'tiles/atlas3.png', 'tiles/atlas4.png', 'sprites/01.json', 'sprites/01_attack.json']);
       this.loader.onComplete = _.bind(this.start, this);
       this.loader.load();
-      this.characterGroup = new Kobu.CharacterGroup;
+      this.networkObjects = new Kobu.networkObjects;
       $(document).on('keydown', this.handleKeyboard);
     }
 
@@ -134,21 +137,27 @@
         return;
       }
       orientation = '';
-      switch (e.keyCode) {
-        case 32:
-          this.player().attack();
-          return false;
-        case 37:
-          orientation = Kobu.ORIENTATION.LEFT;
-          break;
-        case 38:
-          orientation = Kobu.ORIENTATION.UP;
-          break;
-        case 39:
-          orientation = Kobu.ORIENTATION.RIGHT;
-          break;
-        case 40:
-          orientation = Kobu.ORIENTATION.DOWN;
+      if (e.keyCode === 13) {
+        this.player().toggleChat();
+      }
+      console.log("Pressed " + e.keyCode);
+      if (!this.player().isTyping) {
+        switch (e.keyCode) {
+          case 32:
+            this.player().attack();
+            return false;
+          case 37:
+            orientation = Kobu.ORIENTATION.LEFT;
+            break;
+          case 38:
+            orientation = Kobu.ORIENTATION.UP;
+            break;
+          case 39:
+            orientation = Kobu.ORIENTATION.RIGHT;
+            break;
+          case 40:
+            orientation = Kobu.ORIENTATION.DOWN;
+        }
       }
       if (orientation !== '') {
         this.player().set({
@@ -177,11 +186,11 @@
     };
 
     Main.prototype.addChild = function(child) {
-      return this.world.addChild(child);
+      return this.objectLayer.addChild(child);
     };
 
     Main.prototype.removeChild = function(child) {
-      return this.world.removeChild(child);
+      return this.objectLayer.removeChild(child);
     };
 
     return Main;
@@ -216,7 +225,7 @@
       this.parseMap = __bind(this.parseMap, this);
       this.tiles = new Array;
       this.container = new PIXI.DisplayObjectContainer;
-      Kobu.game.addChild(this.container);
+      Kobu.game.world.addChild(this.container);
       $.getJSON("" + filename, this.parseMap);
     }
 
@@ -259,6 +268,9 @@
       for (z = _l = 0, _ref3 = map.layers.length - 1; 0 <= _ref3 ? _l <= _ref3 : _l >= _ref3; z = 0 <= _ref3 ? ++_l : --_l) {
         layer = new PIXI.DisplayObjectContainer;
         i = 0;
+        if (z === 2) {
+          this.container.addChild(Kobu.game.objectLayer);
+        }
         for (y = _m = 0, _ref4 = map.height - 1; 0 <= _ref4 ? _m <= _ref4 : _m >= _ref4; y = 0 <= _ref4 ? ++_m : --_m) {
           for (x = _n = 0, _ref5 = map.width - 1; 0 <= _ref5 ? _n <= _ref5 : _n >= _ref5; x = 0 <= _ref5 ? ++_n : --_n) {
             idx = map.layers[z].data[i];
@@ -326,7 +338,7 @@
 
     Network.prototype.getRequest = function(data) {
       if (data.id != null) {
-        return Kobu.game.characterGroup.findOrCreate(data);
+        return Kobu.game.networkObjects.findOrCreate(data);
       }
     };
 
@@ -354,12 +366,15 @@
     };
 
     Network.prototype.actionAttack = function(data) {
-      return Kobu.game.characterGroup.get(data.id).attack(false);
+      return Kobu.game.networkObjects.get(data.id).attack(false);
+    };
+
+    Network.prototype.actionChat = function(data) {
+      return Kobu.game.networkObjects.get(data.id).sayText(data.text);
     };
 
     Network.prototype.actionRemove = function(data) {
-      console.log('removing');
-      return Kobu.game.characterGroup.remove(data.id);
+      return Kobu.game.networkObjects.remove(data.id);
     };
 
     return Network;
@@ -508,9 +523,12 @@
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   Kobu.Character = (function(_super) {
+    var bubbleTimeout, isTyping;
+
     __extends(Character, _super);
 
     function Character() {
+      this.sayText = __bind(this.sayText, this);
       this.spriteIdChanged = __bind(this.spriteIdChanged, this);
       _ref = Character.__super__.constructor.apply(this, arguments);
       return _ref;
@@ -520,10 +538,17 @@
 
     Character.prototype._moving = false;
 
+    bubbleTimeout = null;
+
+    isTyping = false;
+
     Character.prototype.initialize = function(opts) {
       this.sprite = new PIXI.DisplayObjectContainer;
+      this.chatBubble = new PIXI.DisplayObjectContainer;
+      this.sprite.addChild(this.chatBubble);
       _.extend(this.sprite, Backbone.Events);
       this.on('change:spriteId', this.spriteIdChanged);
+      this.on('change:typing', this.typing);
       this.on('change:position', this.positionChanged);
       return this.on('change:orientation', this.orientationChanged);
     };
@@ -544,6 +569,97 @@
       }
     };
 
+    Character.prototype.toggleChat = function() {
+      var text;
+      if (this.isTyping) {
+        this.isTyping = false;
+      } else {
+        this.isTyping = true;
+      }
+      if (this.isTyping) {
+        return $('#chat').focus();
+      } else {
+        text = $('#chat').val();
+        console.log(text);
+        Kobu.game.network.sendAction('chat', {
+          text: text
+        });
+        $('#chat').val('');
+        return $('#chat').blur();
+      }
+    };
+
+    Character.prototype.sayText = function(content) {
+      var rectangle, text;
+      if (this.bubbleTimeout != null) {
+        window.clearTimeout(this.bubbleTimeout);
+      }
+      if (this.bubbleTween != null) {
+        this.bubbleTween.kill();
+      }
+      if (this.chatBubble.children.length > 0) {
+        console.log(this.chatBubble.children);
+        this.chatBubble.removeChild(this.chatBubble.getChildAt(0));
+        this.chatBubble.removeChild(this.chatBubble.getChildAt(0));
+      }
+      text = new PIXI.Text(content, {
+        font: "11px Arial",
+        fill: "white",
+        wordWrap: true,
+        wordWrapWidth: 110,
+        stroke: 'black',
+        strokeThickness: 1
+      });
+      text.position.x = -35;
+      text.position.y = -70;
+      rectangle = new PIXI.Graphics;
+      rectangle.alpha = 0.5;
+      rectangle.beginFill(0x000000);
+      rectangle.drawRect(0, 0, 120, text.height);
+      rectangle.moveTo(45, text.height);
+      rectangle.lineTo(60, text.height + 10);
+      rectangle.lineTo(75, text.height);
+      rectangle.position.x = -45;
+      rectangle.position.y = -70;
+      this.chatBubble.alpha = 1;
+      this.chatBubble.addChild(rectangle);
+      this.chatBubble.addChild(text);
+      return this.bubbleTimeout = window.setTimeout(_.bind(this.clearBubble, this), 3000);
+    };
+
+    Character.prototype.clearBubble = function() {
+      return this.bubbleTween = TweenLite.to(this.chatBubble, 1, {
+        alpha: 0,
+        ease: 'Linear.easeNone'
+      });
+    };
+
+    Character.prototype.manageObjectDepth = function() {
+      var entity, increment, objectsAbove, upPosition, _i, _len, _results;
+      return;
+      increment = Kobu.Sprite.getOrientationIncrement(Kobu.ORIENTATION.UP);
+      upPosition = {
+        x: this.get('position').x + increment.x,
+        y: this.get('position').y + increment.y
+      };
+      objectsAbove = _.filter(Kobu.game.networkObjects.models, function(model) {
+        return model.get('position').x === upPosition.x && model.get('position').y === upPosition.y;
+      });
+      _results = [];
+      for (_i = 0, _len = objectsAbove.length; _i < _len; _i++) {
+        entity = objectsAbove[_i];
+        if (Kobu.game.objectLayer.children.indexOf(entity.sprite) > Kobu.game.objectLayer.children.indexOf(this.sprite)) {
+          console.log(Kobu.game.objectLayer.children.indexOf(entity.sprite));
+          console.log(Kobu.game.objectLayer.children.indexOf(this.sprite));
+          Kobu.game.objectLayer.swapChildren(entity.sprite, this.sprite);
+          _results.push(console.log('swapped'));
+        } else {
+          _results.push(void 0);
+        }
+      }
+      return _results;
+    };
+
     Character.prototype.orientationChanged = function(model, orientation, options) {
       var increment, newPosition;
       if (this.previous('orientation') !== orientation) {
@@ -560,7 +676,6 @@
           x: this.get('position').x + increment.x,
           y: this.get('position').y + increment.y
         };
-        console.log("Checking at " + newPosition.x + " " + newPosition.y);
         if (!Kobu.game.map.tileProperty(newPosition.x, newPosition.y, 'WALKABLE')) {
           return this.set({
             position: newPosition
@@ -578,6 +693,7 @@
           position: value
         });
       }
+      this.manageObjectDepth();
       if (this.previous('position')) {
         return TweenLite.to(this.sprite.position, 0.4, {
           x: value.x * 32,

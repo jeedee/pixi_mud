@@ -1,4 +1,4 @@
-class Kobu.CharacterGroup extends Backbone.Collection
+class Kobu.networkObjects extends Backbone.Collection
 	initialize: ->
 		@on('remove', @entityRemoved)
 	
@@ -23,7 +23,7 @@ class Kobu.Main
 	playerId: null
 	
 	player: ->
-		return @characterGroup.get(@playerId)
+		return @networkObjects.get(@playerId)
 	
 	constructor: ->
 		Kobu.game = @
@@ -38,8 +38,14 @@ class Kobu.Main
 		@world = new PIXI.DisplayObjectContainer
 		@stage.addChild(@world)
 		
+		# Create an object layer
+		@objectLayer = new PIXI.DisplayObjectContainer
+		
 		# Append the renderer to the body
-		document.body.appendChild(@renderer.view)
+		$('body').append(@renderer.view)
+		$('body').append("""<input type="text" id="chat" /> """)
+		$('#chat').css('width', '900px')
+		
 		
 		# Load assets
 		@loader = new PIXI.AssetLoader(['tiles/atlas1.png','tiles/atlas2.png','tiles/atlas3.png','tiles/atlas4.png', 'sprites/01.json', 'sprites/01_attack.json'])
@@ -47,7 +53,7 @@ class Kobu.Main
 		@loader.load()
 		
 		# Setup groups
-		@characterGroup = new Kobu.CharacterGroup
+		@networkObjects = new Kobu.networkObjects
 		
 		# Bind document keys
 		$(document).on('keydown', @handleKeyboard)
@@ -56,16 +62,20 @@ class Kobu.Main
 		return unless Kobu.game.player()?
 		orientation = ''
 		
-#		console.log "Pressed #{e.keyCode}"
-		switch e.keyCode
-			# ORIENTATION
-			when 32
-				@player().attack()
-				return false
-			when 37 then orientation = Kobu.ORIENTATION.LEFT
-			when 38 then orientation = Kobu.ORIENTATION.UP
-			when 39 then orientation = Kobu.ORIENTATION.RIGHT
-			when 40 then orientation = Kobu.ORIENTATION.DOWN
+		if e.keyCode == 13
+			@player().toggleChat() 
+		
+		console.log "Pressed #{e.keyCode}"
+		if not @player().isTyping
+			switch e.keyCode
+				# ORIENTATION
+				when 32
+					@player().attack()
+					return false
+				when 37 then orientation = Kobu.ORIENTATION.LEFT
+				when 38 then orientation = Kobu.ORIENTATION.UP
+				when 39 then orientation = Kobu.ORIENTATION.RIGHT
+				when 40 then orientation = Kobu.ORIENTATION.DOWN
 		
 		# Set data and trigger manually while waiting for force option
 		if orientation != ''
@@ -89,6 +99,7 @@ class Kobu.Main
 	render: =>
 		# Prepare next anim frame
 		window.requestAnimFrame(_.bind(@render, @))
+		
 		# Update camera
 		@camera.update()
 		
@@ -97,7 +108,7 @@ class Kobu.Main
 	
 	## CONTAINER METHODS
 	addChild: (child) ->
-		@world.addChild(child)
+		@objectLayer.addChild(child)
 		
 	removeChild: (child) ->
-		@world.removeChild(child)
+		@objectLayer.removeChild(child)

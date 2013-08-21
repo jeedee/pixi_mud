@@ -9,8 +9,11 @@ class Player extends Ness.Entity
 		spriteId: '01'
 	}
 	
-	attack: =>
+	actionAttack: =>
 		@zone.sendEveryone('action', {id: 'attack', data: {id: @get('id')}})
+	
+	actionChat: (data) =>
+		@zone.sendEveryone('action', {id: 'chat', data: {id: @get('id'), text: data.text}})
 	
 	networkedAttributes:{
 		orientation: {sync: true, read: Ness.EVERYONE}
@@ -33,8 +36,8 @@ io.sockets.on "connection", (socket) ->
 	socket.on 'set', (data) ->
 		clients[socket.id].setNetworked(data)
 
-	socket.on 'action', (action) ->
-		clients[socket.id].actionRequest(action.id, data)
+	socket.on 'action', (data) ->
+		clients[socket.id].actionRequest(data.id, data.data)
 
 	socket.on "disconnect", ->
 		clients[socket.id].leave()
