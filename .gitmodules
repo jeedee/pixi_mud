@@ -1,0 +1,3 @@
+[submodule "ness"]
+	path = ness
+	url = https://github.com/jeedee/ness
